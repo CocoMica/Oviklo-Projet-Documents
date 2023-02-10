@@ -1,0 +1,259 @@
+from openpyxl import *
+from datetime import datetime
+global sheet
+global workbook
+global file_name
+global Excel_Path
+
+def get_Excel_Path(path):
+    global Excel_Path
+    Excel_Path = path
+
+def get_month(name):
+    mth = str(datetime.today().month)
+    week = str(datetime.today().isocalendar()[1])
+    if len(mth) < 2:
+        mth = "0"+mth
+    #total_name = Excel_Path + str(name) + "-" + str(datetime.today().year) + "-" + mth+".xlsx" #if needed by month
+    total_name = Excel_Path + str(name) + "-" + str(datetime.today().year)+".xlsx" #if needed by year
+    return total_name
+
+def get_previous_month(name):
+    mth = str(datetime.today().month)
+    week = str(datetime.today().isocalendar()[1])
+    if len(mth) < 2:
+        mth = "0"+mth
+    #total_name = Excel_Path + str(name) + "-" + str(datetime.today().year) + "-" + mth+".xlsx" #if needed by month
+    total_name = Excel_Path + str(name) + "-" + str(datetime.today().year - 1)+".xlsx" #if needed by year
+    return total_name
+
+def get_previous_previous_month(name):
+    mth = str(datetime.today().month)
+    week = str(datetime.today().isocalendar()[1])
+    if len(mth) < 2:
+        mth = "0"+mth
+    #total_name = Excel_Path + str(name) + "-" + str(datetime.today().year) + "-" + mth+".xlsx" #if needed by month
+    total_name = Excel_Path + str(name) + "-" + str(datetime.today().year - 2)+".xlsx" #if needed by year
+    return total_name
+
+
+def create_workbook(name):
+    global sheet
+    global workbook
+    global file_name
+    columnWidth = 30
+    file_name = get_month(name)
+    try:
+        workbook = load_workbook(filename=file_name)
+        sheet = workbook.active
+        sheet.protection.password = "12345"
+        sheet.column_dimensions['A'].width = columnWidth
+        sheet.column_dimensions['B'].width = columnWidth
+        sheet.column_dimensions['C'].width = columnWidth
+        sheet.column_dimensions['D'].width = columnWidth
+        sheet.column_dimensions['E'].width = columnWidth
+        sheet.column_dimensions['F'].width = columnWidth
+        sheet.column_dimensions['G'].width = columnWidth
+        sheet.column_dimensions['H'].width = columnWidth
+        sheet.column_dimensions['I'].width = columnWidth
+        sheet.column_dimensions['J'].width = columnWidth
+        sheet.column_dimensions['K'].width = columnWidth
+        sheet.column_dimensions['L'].width = columnWidth
+        sheet.column_dimensions['M'].width = columnWidth
+        sheet.column_dimensions['N'].width = columnWidth
+        sheet.column_dimensions['O'].width = columnWidth
+        sheet.column_dimensions['P'].width = columnWidth
+        sheet.column_dimensions['Q'].width = columnWidth
+        sheet.column_dimensions['R'].width = columnWidth
+        sheet.column_dimensions['S'].width = columnWidth
+        sheet.column_dimensions['T'].width = columnWidth
+        sheet.column_dimensions['U'].width = columnWidth
+        sheet.column_dimensions['V'].width = columnWidth
+        sheet.column_dimensions['W'].width = columnWidth
+        sheet.column_dimensions['X'].width = columnWidth
+        sheet["A1"] = "Date Stamp"
+        sheet["B1"] = "Time Stamp"
+        sheet["C1"] = "Type Of Record"
+        sheet["D1"] = "Data Entered By"
+        sheet["E1"] = "Overall Barcode"
+        sheet["F1"] = "PO Number"
+        sheet["G1"] = "Excel 01 Row"
+        sheet["H1"] = "Pellet Number"
+        sheet["I1"] = "Label issue number"#Identical label issue number
+        sheet["J1"] = "Supplier"
+        sheet["K1"] = "Customer"
+        sheet["L1"] = "Material Description"
+        sheet["M1"] = "Material Code"
+        sheet["N1"] = "Twist"
+        sheet["O1"] = "Lot Number"
+        sheet["P1"] = "Invoice Number"
+        sheet["Q1"] = "Total Initial Box Qty"
+        sheet["R1"] = "Box Qty In Pellet Before Scanning"
+        sheet["S1"] = "Box Quantity Removed"
+        sheet["T1"] = "New Box Qty In Pellet"
+        sheet["U1"] = "Total Initial Weight"
+        sheet["V1"] = "Weight In Pellet Before Scanning"
+        sheet["W1"] = "Weight Removed"
+        sheet["X1"] = "New Weight In Pellet"
+        workbook.save(filename=file_name)
+
+    except:
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.protection.password = "12345"
+        sheet.column_dimensions['A'].width = columnWidth
+        sheet.column_dimensions['B'].width = columnWidth
+        sheet.column_dimensions['C'].width = columnWidth
+        sheet.column_dimensions['D'].width = columnWidth
+        sheet.column_dimensions['E'].width = columnWidth
+        sheet.column_dimensions['F'].width = columnWidth
+        sheet.column_dimensions['G'].width = columnWidth
+        sheet.column_dimensions['H'].width = columnWidth
+        sheet.column_dimensions['I'].width = columnWidth
+        sheet.column_dimensions['J'].width = columnWidth
+        sheet.column_dimensions['K'].width = columnWidth
+        sheet.column_dimensions['L'].width = columnWidth
+        sheet.column_dimensions['M'].width = columnWidth
+        sheet.column_dimensions['N'].width = columnWidth
+        sheet.column_dimensions['O'].width = columnWidth
+        sheet.column_dimensions['P'].width = columnWidth
+        sheet.column_dimensions['Q'].width = columnWidth
+        sheet.column_dimensions['R'].width = columnWidth
+        sheet.column_dimensions['S'].width = columnWidth
+        sheet.column_dimensions['T'].width = columnWidth
+        sheet.column_dimensions['U'].width = columnWidth
+        sheet.column_dimensions['V'].width = columnWidth
+        sheet.column_dimensions['W'].width = columnWidth
+        sheet.column_dimensions['X'].width = columnWidth
+        sheet["A1"] = "Date Stamp"
+        sheet["B1"] = "Time Stamp"
+        sheet["C1"] = "Type Of Record"
+        sheet["D1"] = "Data Entered By"
+        sheet["E1"] = "Overall Barcode"
+        sheet["F1"] = "PO Number"
+        sheet["G1"] = "Excel 01 Row"
+        sheet["H1"] = "Pellet Number"
+        sheet["I1"] = "Label issue number"#Identical label issue number
+        sheet["J1"] = "Supplier"
+        sheet["K1"] = "Customer"
+        sheet["L1"] = "Material Description"
+        sheet["M1"] = "Material Code"
+        sheet["N1"] = "Twist"
+        sheet["O1"] = "Lot Number"
+        sheet["P1"] = "Invoice Number"
+        sheet["Q1"] = "Total Initial Box Qty"
+        sheet["R1"] = "Box Qty In Pellet Before Scanning"
+        sheet["S1"] = "Box Quantity Removed"
+        sheet["T1"] = "New Box Qty In Pellet"
+        sheet["U1"] = "Total Initial Weight"
+        sheet["V1"] = "Weight In Pellet Before Scanning"
+        sheet["W1"] = "Weight Removed"
+        sheet["X1"] = "New Weight In Pellet"
+        workbook.save(filename=file_name)
+
+
+def write_to_last_column_workbook(TypeOfRecord, DataEnteredBy,OverallBarcode, PONumber, Excel01Row, PelletNumber, LabelIssueNumber, Supplier, Customer, MaterialDescription,MaterialCode,Twist, LotNumber, InvoiceNumber, TotalInitialBoxQty,BoxQtyInPelletBeforeScanning, BoxQuantityRemoved, NewBoxQtyInPellet, WeightInPelletBeforeScanning, WeightRemoved, NewWeightInPellet, TotalInitialWeight):
+    global sheet
+    global workbook
+    global file_name
+    try:
+        workbook = load_workbook(filename=file_name)
+        sheet = workbook.active
+        lastRowNumber = str(sheet.max_row + 1)
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y")
+        tm_string = now.strftime("%H:%M:%S")
+        sheet["A" + lastRowNumber] = dt_string
+        sheet["B" + lastRowNumber] = tm_string
+        sheet["C" + lastRowNumber] = TypeOfRecord
+        sheet["D" + lastRowNumber] = DataEnteredBy
+        sheet["E" + lastRowNumber] = OverallBarcode
+        sheet["F" + lastRowNumber] = PONumber
+        sheet["G" + lastRowNumber] = Excel01Row
+        sheet["H" + lastRowNumber] = PelletNumber
+        sheet["I" + lastRowNumber] = LabelIssueNumber
+        sheet["J" + lastRowNumber] = Supplier
+        sheet["K" + lastRowNumber] = Customer
+        sheet["L" + lastRowNumber] = MaterialDescription
+        sheet["M" + lastRowNumber] = MaterialCode
+        sheet["N" + lastRowNumber] = Twist
+        sheet["O" + lastRowNumber] = LotNumber
+        sheet["P" + lastRowNumber] = InvoiceNumber
+        sheet["Q" + lastRowNumber] = TotalInitialBoxQty
+        sheet["R" + lastRowNumber] = BoxQtyInPelletBeforeScanning
+        sheet["S" + lastRowNumber] = BoxQuantityRemoved
+        sheet["T" + lastRowNumber] = NewBoxQtyInPellet
+        sheet["U" + lastRowNumber] = TotalInitialWeight
+        sheet["V" + lastRowNumber] = WeightInPelletBeforeScanning
+        sheet["W" + lastRowNumber] = WeightRemoved
+        sheet["X" + lastRowNumber] = NewWeightInPellet
+
+        workbook.save(filename=file_name)
+        workbook.close()
+        return True
+    except:
+        print("Function write_to_last_column_workbook(): could not load the workbook")
+        return False
+
+
+def Update_Existing_Row(barcode, Row):
+    print("from Update_Existing_Row: ", barcode, " at row: ", Row)
+    global sheet
+    global workbook
+    global file_name
+    try:
+        workbook = load_workbook(filename=file_name)
+        sheet = workbook.active
+        RowNumber = str(Row + 2)
+        sheet["C" + RowNumber] = "USED"
+        workbook.save(filename=file_name)
+        workbook.close()
+        return True
+    except:
+        print("Function Update_Existing_Row(): could not load the workbook")
+        return False
+
+def Update_Existing_Row_Previous(barcode, Row, path):
+    print("from Update_Existing_Row: ", barcode, " at row: ", Row)
+    global sheet
+    global workbook
+    global file_name
+    try:
+        workbook = load_workbook(filename=path)
+        sheet = workbook.active
+        RowNumber = str(Row + 2)
+        sheet["C" + RowNumber] = "USED"
+        workbook.save(filename=path)
+        workbook.close()
+        return True
+    except:
+        print("Function Update_Existing_Row(): could not load the workbook")
+        return False
+
+def Update_Existing_Row_Previous_Previous(barcode, Row, path):
+    print("from Update_Existing_Row: ", barcode, " at row: ", Row)
+    global sheet
+    global workbook
+    global file_name
+    try:
+        workbook = load_workbook(filename=path)
+        sheet = workbook.active
+        RowNumber = str(Row + 2)
+        sheet["C" + RowNumber] = "USED"
+        workbook.save(filename=path)
+        workbook.close()
+        return True
+    except:
+        print("Function Update_Existing_Row(): could not load the workbook")
+        return False
+
+
+
+def Create_Excel_Document(Path, Name):
+    get_Excel_Path(Path)
+    try:
+        create_workbook(Name)
+        print("Excel file created at: ", Excel_Path)
+        return True
+    except:
+        return False

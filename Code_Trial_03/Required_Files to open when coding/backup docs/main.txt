@@ -1,0 +1,167 @@
+from label_printer import *
+from Read_Excel_Stuff import *
+from Secondary_Functions import *
+from Write_Excel_Stuff import *
+
+Excel_Read_Path = 'Required_Files/Excel_01.xlsx'
+Excel_02_Write_Path = 'Output_Files/'
+Excel_02_Name = "Oviklo_Inventory_Records"
+EPF = '37388'
+def primaryFunctions():
+    Create_Excel_Document(Excel_02_Write_Path, Excel_02_Name)
+    Generate_Backup_Data()
+
+def readExcel_01AndGeneratePrintouts():
+    userInput = input("search Query: ")
+    try:
+        userInput = int(userInput)
+    except:
+        pass
+    printResponse = Open_Excel_01(Excel_Read_Path, userInput)
+    print(printResponse)
+    recordAlreadyExist = Check_Excel_02_Record_Duplication(get_month(Excel_02_Name), (printResponse[0] + '_1_1'))
+    if recordAlreadyExist == False:
+        printQueue = Sort_To_Pellets(printResponse)
+        for (index, printout) in enumerate(printQueue):
+            print("from main method: ",printout)
+            barcode = printout[0] + "_"+str(index+1)+"_1" #original PO number + Excel_01 row number + Pallet number + identical label issue number.
+            invoiceNumber = printout[1]
+            materialCode = str(printout[2])
+            materialDescription = printout[3]
+            supplier = printout[4]
+            lotNumber = printout[5]
+            totalBoxQty = printout[6]
+            PONumber = printout[7]
+            ExcelRow = printout[8]
+            boxQtyInPellet = printout[9]
+            pelletNum = str(index+1)
+            excelWriteSuccess = write_to_last_column_workbook(
+                TypeOfRecord="NEW",
+                DataEnteredBy=EPF,
+                OverallBarcode=barcode,
+                PONumber=PONumber,
+                Excel01Row=ExcelRow,
+                PelletNumber=pelletNum,
+                LabelIssueNumber=1,
+                Supplier=supplier,
+                MaterialDescription=materialDescription,
+                MaterialCode=materialCode,
+                LotNumber=lotNumber,
+                InvoiceNumber=invoiceNumber,
+                TotalInitialBoxQty=totalBoxQty,
+                BoxQtyInPelletBeforeScanning=boxQtyInPellet,
+                BoxQuantityRemoved=0,
+                NewBoxQtyInPellet=boxQtyInPellet
+            )
+            backupWriteSuccess = Write_To_Backup_text_Doc(
+                TypeOfRecord="NEW",
+                DataEnteredBy=EPF,
+                OverallBarcode=barcode,
+                PONumber=PONumber,
+                Excel01Row=ExcelRow,
+                PelletNumber=pelletNum,
+                LabelIssueNumber=1,
+                Supplier=supplier,
+                MaterialDescription=materialDescription,
+                MaterialCode=materialCode,
+                LotNumber=lotNumber,
+                InvoiceNumber=invoiceNumber,
+                TotalInitialBoxQty=totalBoxQty,
+                BoxQtyInPelletBeforeScanning=boxQtyInPellet,
+                BoxQuantityRemoved=0,
+                NewBoxQtyInPellet=boxQtyInPellet
+            )
+            if excelWriteSuccess == True and backupWriteSuccess == True:
+                Print_Labels(supplier, materialDescription, materialCode, lotNumber, totalBoxQty, boxQtyInPellet, invoiceNumber, barcode, pelletNum)
+            else:
+                print("function readExcel_01AndGeneratePrintouts: could not open the excel 02 or the backup text doc. hence no printout")
+    else:
+        print("The selected record already exist in the Excel 02 datasheet")
+def decodeBarcode():
+    loop = True
+    while(loop):
+        barcode = input("Enter the barcode value here: ")
+        if barcode == "exit":
+            loop = False
+        else:
+            response = Open_Excel_02(get_month(Excel_02_Name), str(barcode))
+            if response[1]:
+                typeOfRecord = response[0][2]
+                if typeOfRecord == "NEW":
+                    barcodeInputDecoded = response[0][4].split('_')
+                    barcodeWithoutLabelIssueNumber = barcodeInputDecoded[0]+'_'+barcodeInputDecoded[1]+'_'+barcodeInputDecoded[2]
+                    currentLabelIssueNumber = int(barcodeInputDecoded[3])
+                    newLabelIssueNumber = currentLabelIssueNumber + 1
+                    newOverallBarcode = barcodeWithoutLabelIssueNumber + "_"+str(newLabelIssueNumber)
+                    currentBoxQtyInPellet = int(response[0][17])
+                    boxQtyRemoved = input('Enter the amount of boxes removed from the current pellet (Current remaining amount is '+ str(response[0][17])+'): ')
+                    if boxQtyRemoved != "exit":
+                        remainingBoxQty = currentBoxQtyInPellet - int(boxQtyRemoved)
+                        if (remainingBoxQty <0):
+                            print('Cannot have a negative box quantity')
+                        else:
+                            print('Remaining box quantity in pellet: ', remainingBoxQty)
+                            Update_Existing_Row(response[0][4], response[2])
+                            excelWriteSuccess = write_to_last_column_workbook(
+                                TypeOfRecord="NEW",
+                                DataEnteredBy=EPF,
+                                OverallBarcode=newOverallBarcode,
+                                PONumber=response[0][5],
+                                Excel01Row=response[0][6],
+                                PelletNumber=response[0][7],
+                                LabelIssueNumber=newLabelIssueNumber,
+                                Supplier=response[0][9],
+                                MaterialDescription=response[0][10],
+                                MaterialCode=response[0][11],
+                                LotNumber=response[0][12],
+                                InvoiceNumber=response[0][13],
+                                TotalInitialBoxQty=response[0][14],
+                                BoxQtyInPelletBeforeScanning=currentBoxQtyInPellet,
+                                BoxQuantityRemoved=boxQtyRemoved,
+                                NewBoxQtyInPellet=remainingBoxQty
+                            )
+                            backupWriteSuccess = Write_To_Backup_text_Doc(
+                                TypeOfRecord="NEW",
+                                DataEnteredBy=EPF,
+                                OverallBarcode=newOverallBarcode,
+                                PONumber=response[0][5],
+                                Excel01Row=response[0][6],
+                                PelletNumber=response[0][7],
+                                LabelIssueNumber=newLabelIssueNumber,
+                                Supplier=response[0][9],
+                                MaterialDescription=response[0][10],
+                                MaterialCode=response[0][11],
+                                LotNumber=response[0][12],
+                                InvoiceNumber=response[0][13],
+                                TotalInitialBoxQty=response[0][14],
+                                BoxQtyInPelletBeforeScanning=currentBoxQtyInPellet,
+                                BoxQuantityRemoved=boxQtyRemoved,
+                                NewBoxQtyInPellet=remainingBoxQty
+                            )
+                            if excelWriteSuccess == True and backupWriteSuccess == True:
+                                Print_Labels(str(response[0][9]), str(response[0][10]), str(response[0][11]), str(response[0][12]), str(response[0][14]),
+                                             str(remainingBoxQty), str(response[0][13]), newOverallBarcode, str(response[0][7]))
+                            else:
+                                print(
+                                    "function readExcel_01AndGeneratePrintouts: could not open the excel 02 or the backup text doc. hence no printout")
+                    else:
+                        print("New label creation aborted.")
+                else:
+                    print("This label is USED. Cannot scan again.")
+
+            else:
+                print("No record found for the scanned barcode")
+            loop = True
+
+
+if __name__ == "__main__":
+    primaryFunctions()
+    readExcel_01AndGeneratePrintouts() #to get a new label form excel 01 data. excel 02 data auto recorded.
+    #decodeBarcode()
+
+
+
+
+
+
+

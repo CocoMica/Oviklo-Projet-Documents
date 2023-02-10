@@ -1,0 +1,209 @@
+import json
+import os
+from PIL import Image, ImageFont, ImageDraw
+
+from barcode import EAN13, ISBN10, Code39, PZN, Code128
+
+from barcode.writer import ImageWriter
+
+
+class Label:
+    def __init__(self, json_file):
+        self.json_file = json_file
+        self.mainwindow_w, self.mainwindow_h, self.barcode_w, self.barcode_h, self.supplier_x, self.supplier_y, self.mat_des_x, self.mat_des_y, self.mat_code_x, self.mat_code_y, self.lot_num_x, self.lot_num_y, self.num_board_x, self.num_board_y, self.qty_x, self.qty_y, self.invent_num_x, self.invent_num_y, self.fnt_size = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12
+        self.label_name = "sample_label"
+
+        self.upscale = 8  # set up scale value for creating label
+
+    def load_variables(self):
+        info_json_file = open(self.json_file)
+        label_info = json.load(info_json_file)
+
+        # Scaling up label image to 10 times
+        self.mainwindow_w = int(label_info["mainwindow"]["Total_width_of_the_Label"] * self.upscale)
+        self.mainwindow_h = int(label_info["mainwindow"]["Total_height_of_the_label"] * self.upscale)
+
+        self.barcode_h = label_info["barcode"]["Total_height_of_the_barcode_area"]
+        self.barcode_w = label_info["barcode"]["Total_width_of_the_barcode_area"]
+
+        self.fnt_size_Normal = label_info["FontSelection"]["Font_Size_Normal_Text"]
+        self.fnt_size_Title = label_info["FontSelection"]["Font_Size_Title_Text"]
+        self.fnt_size_answer = label_info["FontSelection"]["Font_Size_Ans"]
+
+        self.Title_x = label_info["text_partition"]["X_position_of_Title"]
+        self.Title_y = label_info["text_partition"]["Y_position_of_Title"]
+        self.supplier_x = label_info["text_partition"]["X_position_of_supplier"]
+        self.supplier_y = label_info["text_partition"]["Y_position_of_supplier"]
+
+        print("Label Information Assignment Complete!")
+
+    def create_barcode(self, barcode_info):
+        # Name for the barcode
+        barcode_name = barcode_info
+
+        # pass the information to be include in the barcode with the ImageWriter() as the writer
+        # barcode = EAN13(barcode_info, writer=ImageWriter())
+        barcode = Code128(barcode_info, writer=ImageWriter())
+
+        # Save Barcode
+        barcode.save(barcode_info)
+
+        return barcode_name
+
+    def save_label_design(self, barcode_name,Supplier_Name, Mat_Description, Mat_Code, Lot_Number, Num_Blocks,Quantity, Invoice_Num, Pellet_num):
+
+        # Create a empty white layout for the label
+        layout = Image.new('RGB', (self.mainwindow_w, self.mainwindow_h), (255, 255, 255))
+
+        # Add text info to the label
+        title_text = "Description"
+
+        title_text_1 = "Supplier "
+        title_text_2 = "Material Description "
+        title_text_3 = "Material Code "
+        title_text_4 = "Lot Number "
+        title_text_5 = "Total Initial Box Qty "
+        title_text_6 = "Box Qty In Pellet "
+        title_text_7 = "Invoice Number "
+        title_text_8 = "Pellet Number "
+
+        image_editable = ImageDraw.Draw(layout)
+
+        gap = self.Title_y * self.mainwindow_h
+
+        title_font = ImageFont.truetype('arial', int(self.fnt_size_Title * self.mainwindow_h))
+        w, h = image_editable.textsize(title_text, font=title_font)
+        image_editable.text(((self.Title_x * self.mainwindow_w - w / 2), gap), title_text, (0, 0, 0), font=title_font)
+
+        image_editable.line([(0, (2 * gap + h)), (self.mainwindow_w, (2 * gap + h))], fill="black",
+                            width=int(0.001428571429 * self.mainwindow_h))
+
+        #-----------------------------------------------------------------------------------------------
+
+        H_Previous_Title = 2 * gap + h
+
+        texts_font = ImageFont.truetype('arial', int(self.fnt_size_Normal * self.mainwindow_h))
+        w_1, h_1 = image_editable.textsize(title_text_1, font=texts_font) #check this
+        image_editable.text((self.supplier_x * self.mainwindow_w, H_Previous_Title + gap), title_text_1, (0, 0, 0),
+                            font=texts_font, stroke_width=1)
+
+        ans_font = ImageFont.truetype('arial', int(self.fnt_size_answer * self.mainwindow_h))
+
+        image_editable.text((self.supplier_x * self.mainwindow_w+gap, H_Previous_Title + 4*gap), Supplier_Name, (65, 65, 65),
+                            font=ans_font, stroke_width=1)
+
+        image_editable.line(
+            [(0, (2 * gap + H_Previous_Title + 3 * h_1)), (self.mainwindow_w, (2 * gap + H_Previous_Title + 3 * h_1))],
+            fill="black", width=int(0.001428571429 * self.mainwindow_h))
+
+        image_editable.text((self.mainwindow_w / 2 + gap, H_Previous_Title + gap), title_text_2, (0, 0, 0),
+                            font=texts_font)
+
+        image_editable.text((self.mainwindow_w / 2 + 2*gap, H_Previous_Title + 4 * gap), Mat_Description,
+                            (65, 65, 65),
+                            font=ans_font, stroke_width=1)
+        # -----------------------------------------------------------------------------------------------
+
+        H_Previous_Supplier = 2 * gap + H_Previous_Title + 3 * h_1
+
+        image_editable.text((self.supplier_x * self.mainwindow_w, H_Previous_Supplier + gap), title_text_3, (0, 0, 0),
+                            font=texts_font)
+
+        image_editable.text((self.supplier_x * self.mainwindow_w + gap, H_Previous_Supplier + 4 * gap), Mat_Code,
+                            (65, 65, 65),
+                            font=ans_font, stroke_width=1)
+
+        image_editable.line(
+            [(0, (2 * gap + H_Previous_Supplier + 3 * h_1)),
+             (self.mainwindow_w, (2 * gap + H_Previous_Supplier + 3 * h_1))],
+            fill="black", width=int(0.001428571429 * self.mainwindow_h))
+
+        image_editable.text((self.mainwindow_w / 2 + gap, H_Previous_Supplier + gap), title_text_4, (0, 0, 0),
+                            font=texts_font)
+
+        image_editable.text((self.mainwindow_w / 2  + 2*gap, H_Previous_Supplier + 4 * gap), Lot_Number,
+                            (65, 65, 65),
+                            font=ans_font, stroke_width=1)
+
+        # -----------------------------------------------------------------------------------------------
+
+        H_Previous_Matcode = 2 * gap + H_Previous_Supplier + 3 * h_1
+
+        image_editable.text((self.supplier_x * self.mainwindow_w, H_Previous_Matcode + gap), title_text_5, (0, 0, 0),
+                            font=texts_font)
+
+        image_editable.text((self.supplier_x * self.mainwindow_w + gap, H_Previous_Matcode + 4 * gap), Num_Blocks,
+                            (65, 65, 65),
+                            font=ans_font, stroke_width=1)
+
+        image_editable.line(
+            [(0, (2 * gap + H_Previous_Matcode + 3 * h_1)),
+             (self.mainwindow_w, (2 * gap + H_Previous_Matcode + 3 * h_1))],
+            fill="black", width=int(0.001428571429 * self.mainwindow_h))
+
+        image_editable.text((self.mainwindow_w / 2 + gap, H_Previous_Matcode + gap), title_text_6, (0, 0, 0),
+                            font=texts_font)
+
+        image_editable.text((self.mainwindow_w / 2 + 2 * gap, H_Previous_Matcode + 4 * gap), Quantity,
+                            (65, 65, 65),
+                            font=ans_font, stroke_width=1)
+
+        # -----------------------------------------------------------------------------------------------
+
+        H_Previous_NumBlocks = 2 * gap + H_Previous_Matcode + 3 * h_1
+
+        image_editable.text((self.supplier_x * self.mainwindow_w, H_Previous_NumBlocks + gap), title_text_7, (0, 0, 0),
+                            font=texts_font)
+
+        image_editable.text((self.supplier_x * self.mainwindow_w + gap, H_Previous_NumBlocks + 4 * gap), Invoice_Num,
+                           (65, 65, 65),
+                           font=ans_font, stroke_width=1)
+        #__________________________________________________________________________________________________________________Pellet number
+        image_editable.text((self.mainwindow_w / 2 + gap, H_Previous_NumBlocks + gap), title_text_8, (0, 0, 0),
+                            font=texts_font)
+        image_editable.text((self.mainwindow_w / 2 + 2 * gap, H_Previous_NumBlocks + 4 * gap), Pellet_num,
+                           (65, 65, 65),
+                           font=ans_font, stroke_width=1)
+
+        image_editable.line([(0, (2 * gap + H_Previous_NumBlocks + 3 * h_1)),
+                             (self.mainwindow_w, (2 * gap + H_Previous_NumBlocks + 3 * h_1))], fill="black",
+                            width=int(0.001428571429 * self.mainwindow_h))
+
+        image_editable.line(
+            [(self.mainwindow_w / 2, (2 * gap + h)),
+             (self.mainwindow_w / 2, (2 * gap + H_Previous_NumBlocks + 3 * h_1))],
+            fill="black", width=int(0.001428571429 * self.mainwindow_h))
+
+        # -----------------------------------------------------------------------------------------------
+
+        line_y_pos = (2 * gap + H_Previous_NumBlocks + 3 * h_1)
+        #print("last line", line_y_pos)
+
+        # Open created barcode
+        barcode = Image.open(barcode_name + ".png")
+
+        actual_barcode_w, actual_barcode_h = barcode.size
+
+        #print("actual_barcode_size", actual_barcode_w, actual_barcode_h)
+        #print("possible_space", self.mainwindow_w, self.mainwindow_h - line_y_pos)
+
+        for scale in range(8, 1, -1):
+            scale = 0.1 * scale
+            # new_barcode_w, new_barcode_h = scale * self.mainwindow_w, scale * (self.mainwindow_h - line_y_pos) #same scale for width & height
+            new_barcode_w, new_barcode_h = scale * self.mainwindow_w, (
+                    scale * self.mainwindow_w * actual_barcode_h) / actual_barcode_w
+            #print("new_barcode_size", scale, new_barcode_w, new_barcode_h)
+            if new_barcode_w < self.mainwindow_w and new_barcode_h < (self.mainwindow_h - line_y_pos):
+                barcode_pos_x = int((self.mainwindow_w - new_barcode_w) / 2)
+                barcode_pos_y = int((self.mainwindow_h + line_y_pos - new_barcode_h) / 2)
+                resized_barcode = barcode.resize((int(new_barcode_w), int(new_barcode_h)))
+                break
+
+        # Place the barcode on the layout
+        layout.paste(resized_barcode, (barcode_pos_x, barcode_pos_y))
+
+        #layout.show()
+        layout.save("label.png")
+        nameToDelete = str(barcode_name) + ".png"
+        os.remove(nameToDelete)
+        print("Label Created")

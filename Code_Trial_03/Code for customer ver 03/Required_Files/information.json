@@ -1,0 +1,32 @@
+{
+    "General":{
+        "Excel_01_Read_Path": "Required_Files/Excel_01.xlsx",
+        "Excel_02_Write_Path":"Output_Files/",
+        "Excel_02_Name": "Oviklo_Inventory_Records",
+        "Backup_Path": "Output_files/Backup_Files/"
+    },
+    "mainwindow": {
+        "Total_width_of_the_Label": 1000,
+        "Total_height_of_the_label": 1400,
+        "Starting_Y": 0.04285714286
+    },
+
+    "barcode": {
+        "Total_height_of_the_barcode_area": 100,
+        "Total_width_of_the_barcode_area": 400
+    },
+
+    "FontSelection": {
+        "Font_Size_Normal_Text": 0.02857142857,
+        "Font_Size_Ans": 0.05,
+        "First_two_fonts": 0.06
+    },
+
+    "text_partition": {
+
+        "X_position_of_gap": 0.5,
+        "Y_position_of_gap":0.02142857143,
+        "X_position_of_mat_description": 0.01,
+        "Y_position_of_mat_description": 0.01428571429
+    }
+}

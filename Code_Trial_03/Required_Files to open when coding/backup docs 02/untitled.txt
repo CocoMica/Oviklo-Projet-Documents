@@ -1,0 +1,541 @@
+import sys
+import numpy as np
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5 import QtWidgets, QtGui, QtCore
+from Primary_Functions import *
+
+
+class ScanLabelBarcode(QWidget):
+    currentScannedBarcode = None
+    currentBoxQty = None
+    currentWeight = None
+    def __init__(self):
+        super(ScanLabelBarcode, self).__init__()
+        self.setWindowTitle("Scan label barcode")
+        self.desktop = QApplication.desktop()
+        self.screenRect = self.desktop.screenGeometry()
+        self.height = int(self.screenRect.height()/1.5)
+        self.width = int(self.screenRect.width()/1.5)
+        self.setGeometry(int(self.width/4), int(self.height/4), self.width, self.height)
+        self.initUI()
+
+    def initUI(self):
+        self.scanBarcodeLabel = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.015, 0.9, 0.1, 0.0185)
+        self.scanBarcodeLabel.setFixedSize(L, H)
+        self.scanBarcodeLabel.move(X_pos, Y_pos)
+        self.scanBarcodeLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.scanBarcodeLabel.setFont(QFont('Times', Text_size))
+        self.scanBarcodeLabel.setStyleSheet('color:Black')
+        self.scanBarcodeLabel.setWordWrap(True)
+        self.scanBarcodeLabel.setText("SCAN LABEL BARCODE")
+
+
+        self.scanBarcodeInfoLabel_01 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.14, 0.4, 0.06, 0.02)
+        self.scanBarcodeInfoLabel_01.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_01.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_01.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_01.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_01.setStyleSheet('color:Black')
+        self.scanBarcodeInfoLabel_01.setWordWrap(True)
+        self.scanBarcodeInfoLabel_01.setText("SCAN BARCODE HERE:")
+
+        self.scanBarcodeButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.82, 0.132, 0.15, 0.1, 0.02)
+        self.scanBarcodeButton.setFixedSize(L, H)
+        self.scanBarcodeButton.move(X_pos, Y_pos)
+        self.scanBarcodeButton.setFont(QFont('Times', Text_size))
+        self.scanBarcodeButton.setText("Enter")
+        self.scanBarcodeButton.clicked.connect(self.getBarcodeData)
+        self.scanBarcodeButton.setVisible(False)
+
+        self.scanBarcodeTextBox = QLineEdit(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.405, 0.132, 0.55, 0.1, 0.02)
+        self.scanBarcodeTextBox.setFixedSize(L,H)
+        self.scanBarcodeTextBox.move(X_pos,Y_pos)
+        self.scanBarcodeTextBox.setFont(QFont('Times', Text_size))
+        self.scanBarcodeTextBox.setPlaceholderText('Scan barcode here')
+        self.scanBarcodeTextBox.setStyleSheet('color:Blue')
+        self.scanBarcodeTextBox.returnPressed.connect(self.scanBarcodeButton.click)
+
+        self.scanBarcodeInfoLabel_02 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.25, 0.9, 0.085, 0.012)
+        self.scanBarcodeInfoLabel_02.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_02.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_02.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_02.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_02.setStyleSheet('color:Red')
+        self.scanBarcodeInfoLabel_02.setWordWrap(True)
+        self.scanBarcodeInfoLabel_02.setText("Current scanned barcode : None")
+
+        self.scanBarcodeInfoLabel_03 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.3, 0.9, 0.085, 0.012)
+        self.scanBarcodeInfoLabel_03.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_03.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_03.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_03.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_03.setStyleSheet('color:Red')
+        self.scanBarcodeInfoLabel_03.setWordWrap(True)
+        self.scanBarcodeInfoLabel_03.setText("Current box qty in pellet  : None")
+
+        self.scanBarcodeInfoLabel_04 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.35, 0.9, 0.085, 0.012)
+        self.scanBarcodeInfoLabel_04.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_04.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_04.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_04.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_04.setStyleSheet('color:Red')
+        self.scanBarcodeInfoLabel_04.setWordWrap(True)
+        self.scanBarcodeInfoLabel_04.setText("Current weight in pellet   : None")
+
+        self.scanBarcodeInfoLabel_05 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.45, 0.5, 0.06, 0.016)
+        self.scanBarcodeInfoLabel_05.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_05.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_05.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_05.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_05.setStyleSheet('color:Black')
+        self.scanBarcodeInfoLabel_05.setWordWrap(True)
+        self.scanBarcodeInfoLabel_05.setText("Number of boxes removed from the pellet:")
+
+        self.removedNumBoxesTextBox = QLineEdit(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.55, 0.44, 0.13, 0.08, 0.016)
+        self.removedNumBoxesTextBox.setFixedSize(L,H)
+        self.removedNumBoxesTextBox.move(X_pos,Y_pos)
+        self.removedNumBoxesTextBox.setFont(QFont('Times', Text_size))
+        self.removedNumBoxesTextBox.setPlaceholderText('Number')
+        self.removedNumBoxesTextBox.setStyleSheet('color:Blue')
+        self.onlyInt = QIntValidator()
+        self.removedNumBoxesTextBox.setValidator(self.onlyInt)
+
+        self.scanBarcodeInfoLabel_06 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.55, 0.5, 0.06, 0.016)
+        self.scanBarcodeInfoLabel_06.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_06.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_06.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_06.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_06.setStyleSheet('color:Black')
+        self.scanBarcodeInfoLabel_06.setWordWrap(True)
+        self.scanBarcodeInfoLabel_06.setText("Weight (Kg) removed from the pellet:")
+
+        self.removedWeightTextBox = QLineEdit(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.55, 0.54, 0.13, 0.08, 0.016)
+        self.removedWeightTextBox.setFixedSize(L,H)
+        self.removedWeightTextBox.move(X_pos,Y_pos)
+        self.removedWeightTextBox.setFont(QFont('Times', Text_size))
+        self.removedWeightTextBox.setPlaceholderText('Kg')
+        self.removedWeightTextBox.setStyleSheet('color:Blue')
+        self.onlyFloat = QDoubleValidator()
+        self.removedWeightTextBox.setValidator(self.onlyFloat)
+
+        self.scanBarcodeInfoLabel_07 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.65, 0.9, 0.085, 0.012)
+        self.scanBarcodeInfoLabel_07.setFixedSize(L, H)
+        self.scanBarcodeInfoLabel_07.move(X_pos, Y_pos)
+        self.scanBarcodeInfoLabel_07.setAlignment(QtCore.Qt.AlignLeft)
+        self.scanBarcodeInfoLabel_07.setFont(QFont('Times', Text_size))
+        self.scanBarcodeInfoLabel_07.setStyleSheet('color:Red')
+        self.scanBarcodeInfoLabel_07.setWordWrap(True)
+        self.scanBarcodeInfoLabel_07.setText("Enter the number of boxes and weight removed from the pellet. Click the below button to save changes and generate the new label.")
+
+
+        self.scanBarcodeprintLabelsButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.9, 0.45, 0.06, 0.012)
+        self.scanBarcodeprintLabelsButton.setFixedSize(L, H)
+        self.scanBarcodeprintLabelsButton.move(X_pos, Y_pos)
+        self.scanBarcodeprintLabelsButton.setFont(QFont('Times', Text_size))
+        self.scanBarcodeprintLabelsButton.setText("Proceed and print labels")
+        self.scanBarcodeprintLabelsButton.clicked.connect(self.scanBarcodePrintLabels)
+
+        self.breakToPelletsBackButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.5, 0.9, 0.45, 0.06, 0.012)
+        self.breakToPelletsBackButton.setFixedSize(L, H)
+        self.breakToPelletsBackButton.move(X_pos, Y_pos)
+        self.breakToPelletsBackButton.setFont(QFont('Times', Text_size))
+        self.breakToPelletsBackButton.setText("Back")
+        self.breakToPelletsBackButton.clicked.connect(self.back)
+
+
+    def back(self):
+        self.close()
+
+    def scanBarcodePrintLabels(self):
+        print('scan barcode print labels button pressed')
+
+    def getBarcodeData(self):
+        currentScannedBarcode = self.scanBarcodeTextBox.text()
+        print('input from barcode: ', currentScannedBarcode)
+        self.scanBarcodeInfoLabel_02.setText("Current scanned barcode : "+ currentScannedBarcode)
+        self.scanBarcodeTextBox.clear()
+
+
+
+
+
+    def translate_pos(self, ratioX, ratioY, ratioLength, ratioHeight, ratioTextSize):
+        requiredX = np.int0(ratioX*self.width)
+        requiredY = np.int0(ratioY*self.height)
+        requiredLength = np.int0(ratioLength*self.width)
+        requiredHeight = np.int0(ratioHeight*self.height)
+        requiredTextSize = np.int0(ratioTextSize*self.width)
+        return requiredX, requiredY, requiredLength, requiredHeight, requiredTextSize
+
+class BreakIntoPellets(QWidget):
+
+    def __init__(self):
+        super(BreakIntoPellets, self).__init__()
+        self.setWindowTitle("Break into pellets")
+        self.desktop = QApplication.desktop()
+        self.screenRect = self.desktop.screenGeometry()
+        self.height = int(self.screenRect.height()/1.5)
+        self.width = int(self.screenRect.width()/1.5)
+        self.setGeometry(int(self.width/4), int(self.height/4), self.width, self.height)
+        self.initUI()
+
+    def initUI(self):
+
+        remainingBoxQtyInEntry = 50
+        remainingWeightInEntry = 123.456
+
+
+        self.BreakIntoPelletsLabel = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.015, 0.9, 0.1, 0.0185)
+        self.BreakIntoPelletsLabel.setFixedSize(L, H)
+        self.BreakIntoPelletsLabel.move(X_pos, Y_pos)
+        self.BreakIntoPelletsLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.BreakIntoPelletsLabel.setFont(QFont('Times', Text_size))
+        self.BreakIntoPelletsLabel.setStyleSheet('color:Black')
+        self.BreakIntoPelletsLabel.setWordWrap(True)
+        self.BreakIntoPelletsLabel.setText("BREAK INTO PELLETS")
+
+        self.BreakIntoPelletsInfoLabel_01 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.1, 0.9, 0.085, 0.012)
+        self.BreakIntoPelletsInfoLabel_01.setFixedSize(L, H)
+        self.BreakIntoPelletsInfoLabel_01.move(X_pos, Y_pos)
+        self.BreakIntoPelletsInfoLabel_01.setAlignment(QtCore.Qt.AlignLeft)
+        self.BreakIntoPelletsInfoLabel_01.setFont(QFont('Times', Text_size))
+        self.BreakIntoPelletsInfoLabel_01.setStyleSheet('color:Red')
+        self.BreakIntoPelletsInfoLabel_01.setWordWrap(True)
+        self.BreakIntoPelletsInfoLabel_01.setText("Remaining box qty in the entry: " + str(remainingBoxQtyInEntry))
+
+        self.BreakIntoPelletsInfoLabel_02 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.15, 0.9, 0.085, 0.012)
+        self.BreakIntoPelletsInfoLabel_02.setFixedSize(L, H)
+        self.BreakIntoPelletsInfoLabel_02.move(X_pos, Y_pos)
+        self.BreakIntoPelletsInfoLabel_02.setAlignment(QtCore.Qt.AlignLeft)
+        self.BreakIntoPelletsInfoLabel_02.setFont(QFont('Times', Text_size))
+        self.BreakIntoPelletsInfoLabel_02.setStyleSheet('color:Red')
+        self.BreakIntoPelletsInfoLabel_02.setWordWrap(True)
+        self.BreakIntoPelletsInfoLabel_02.setText("Remaining weight in the entry: " + str(remainingWeightInEntry)+ " Kg")
+
+        self.BreakIntoPelletsInfoLabel_03 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.21, 0.4, 0.06, 0.012)
+        self.BreakIntoPelletsInfoLabel_03.setFixedSize(L, H)
+        self.BreakIntoPelletsInfoLabel_03.move(X_pos, Y_pos)
+        self.BreakIntoPelletsInfoLabel_03.setAlignment(QtCore.Qt.AlignLeft)
+        self.BreakIntoPelletsInfoLabel_03.setFont(QFont('Times', Text_size))
+        self.BreakIntoPelletsInfoLabel_03.setStyleSheet('color:Black')
+        self.BreakIntoPelletsInfoLabel_03.setWordWrap(True)
+        self.BreakIntoPelletsInfoLabel_03.setText("Number of boxes allocated to the pellet:")
+
+        self.numBoxesTextBox = QLineEdit(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.405, 0.205, 0.17, 0.06, 0.012)
+        self.numBoxesTextBox.setFixedSize(L,H)
+        self.numBoxesTextBox.move(X_pos,Y_pos)
+        self.numBoxesTextBox.setFont(QFont('Times', Text_size))
+        self.numBoxesTextBox.setPlaceholderText('Enter num. boxes')
+        self.numBoxesTextBox.setStyleSheet('color:Blue')
+        self.onlyInt = QIntValidator()
+        self.numBoxesTextBox.setValidator(self.onlyInt)
+
+        self.BreakIntoPelletsInfoLabel_04 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.28, 0.4, 0.06, 0.012)
+        self.BreakIntoPelletsInfoLabel_04.setFixedSize(L, H)
+        self.BreakIntoPelletsInfoLabel_04.move(X_pos, Y_pos)
+        self.BreakIntoPelletsInfoLabel_04.setAlignment(QtCore.Qt.AlignLeft)
+        self.BreakIntoPelletsInfoLabel_04.setFont(QFont('Times', Text_size))
+        self.BreakIntoPelletsInfoLabel_04.setStyleSheet('color:Black')
+        self.BreakIntoPelletsInfoLabel_04.setWordWrap(True)
+        self.BreakIntoPelletsInfoLabel_04.setText("Total Kg in the pellet:")
+
+        self.weightTextBox = QLineEdit(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.405, 0.275, 0.17, 0.06, 0.012)
+        self.weightTextBox.setFixedSize(L,H)
+        self.weightTextBox.move(X_pos,Y_pos)
+        self.weightTextBox.setFont(QFont('Times', Text_size))
+        self.weightTextBox.setPlaceholderText('Enter weight (Kg)')
+        self.weightTextBox.setStyleSheet('color:Blue')
+        self.onlyFloat = QDoubleValidator()
+        self.weightTextBox.setValidator(self.onlyFloat)
+
+        self.addNewPelletButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.35, 0.45, 0.06, 0.012)
+        self.addNewPelletButton.setFixedSize(L, H)
+        self.addNewPelletButton.move(X_pos, Y_pos)
+        self.addNewPelletButton.setFont(QFont('Times', Text_size))
+        self.addNewPelletButton.setText("Add New Pellet")
+        self.addNewPelletButton.clicked.connect(self.addNewPellet)
+
+        self.removeSelectedPelletButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.5, 0.35, 0.45, 0.06, 0.012)
+        self.removeSelectedPelletButton.setFixedSize(L, H)
+        self.removeSelectedPelletButton.move(X_pos, Y_pos)
+        self.removeSelectedPelletButton.setFont(QFont('Times', Text_size))
+        self.removeSelectedPelletButton.setText("Remove Selected Pellet")
+        self.removeSelectedPelletButton.clicked.connect(self.removeSelectedPellet)
+
+        self.table = QtWidgets.QTableWidget(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.43, 0.9, 0.35, 0.0185)
+        self.table.setGeometry(QtCore.QRect(X_pos, Y_pos, L, H))
+
+        self.BreakIntoPelletsInfoLabel_05 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.8, 0.9, 0.085, 0.012)
+        self.BreakIntoPelletsInfoLabel_05.setFixedSize(L, H)
+        self.BreakIntoPelletsInfoLabel_05.move(X_pos, Y_pos)
+        self.BreakIntoPelletsInfoLabel_05.setAlignment(QtCore.Qt.AlignLeft)
+        self.BreakIntoPelletsInfoLabel_05.setFont(QFont('Times', Text_size))
+        self.BreakIntoPelletsInfoLabel_05.setStyleSheet('color:Red')
+        self.BreakIntoPelletsInfoLabel_05.setWordWrap(True)
+        self.BreakIntoPelletsInfoLabel_05.setText("Above table shows information on the number of pellets created and how many boxes in each pellet. If all is ok, click the below button")
+
+        self.printLabelsButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.9, 0.45, 0.06, 0.012)
+        self.printLabelsButton.setFixedSize(L, H)
+        self.printLabelsButton.move(X_pos, Y_pos)
+        self.printLabelsButton.setFont(QFont('Times', Text_size))
+        self.printLabelsButton.setText("Proceed and print labels")
+        self.printLabelsButton.clicked.connect(self.printLabels)
+
+        self.breakToPelletsBackButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.5, 0.9, 0.45, 0.06, 0.012)
+        self.breakToPelletsBackButton.setFixedSize(L, H)
+        self.breakToPelletsBackButton.move(X_pos, Y_pos)
+        self.breakToPelletsBackButton.setFont(QFont('Times', Text_size))
+        self.breakToPelletsBackButton.setText("Back")
+        self.breakToPelletsBackButton.clicked.connect(self.back)
+
+
+    def addNewPellet(self):
+        print('button clicked to add new pellet')
+
+    def removeSelectedPellet(self):
+        print('button clicked to remove selected pellet')
+
+    def printLabels(self):
+        print('button clicked to proceed and print labels')
+
+    def back(self):
+        print('button seleced to go back')
+        self.close()
+
+
+    def translate_pos(self, ratioX, ratioY, ratioLength, ratioHeight, ratioTextSize):
+        requiredX = np.int0(ratioX*self.width)
+        requiredY = np.int0(ratioY*self.height)
+        requiredLength = np.int0(ratioLength*self.width)
+        requiredHeight = np.int0(ratioHeight*self.height)
+        requiredTextSize = np.int0(ratioTextSize*self.width)
+        return requiredX, requiredY, requiredLength, requiredHeight, requiredTextSize
+
+
+class CreateANewEntryWindow(QWidget):
+    def __init__(self):
+        super(CreateANewEntryWindow, self).__init__()
+        self.setWindowTitle("Crete a new entry")
+        self.desktop = QApplication.desktop()
+        self.screenRect = self.desktop.screenGeometry()
+        self.height = int(self.screenRect.height()/1.5)
+        self.width = int(self.screenRect.width()/1.5)
+        self.setGeometry(int(self.width/4), int(self.height/4), self.width, self.height)
+        self.initUI()
+
+
+    def initUI(self):
+
+        self.createNewEntryLabel = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.015, 0.9, 0.1, 0.0185)
+        self.createNewEntryLabel.setFixedSize(L, H)
+        self.createNewEntryLabel.move(X_pos, Y_pos)
+        self.createNewEntryLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.createNewEntryLabel.setFont(QFont('Times', Text_size))
+        self.createNewEntryLabel.setStyleSheet('color:Black')
+        self.createNewEntryLabel.setWordWrap(True)
+        self.createNewEntryLabel.setText("CREATE A NEW ENTRY")
+
+        self.createNewEntryInfoLabel_01 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.1, 0.9, 0.085, 0.012)
+        self.createNewEntryInfoLabel_01.setFixedSize(L, H)
+        self.createNewEntryInfoLabel_01.move(X_pos, Y_pos)
+        self.createNewEntryInfoLabel_01.setAlignment(QtCore.Qt.AlignLeft)
+        self.createNewEntryInfoLabel_01.setFont(QFont('Times', Text_size))
+        self.createNewEntryInfoLabel_01.setStyleSheet('color:Red')
+        self.createNewEntryInfoLabel_01.setWordWrap(True)
+        self.createNewEntryInfoLabel_01.setText("* Enter the material code or Invoice number or any preferred filter text to the textbox below. The table will display the filtered rows for you to choose from.")
+
+        self.createNewEntryInfoLabel_02 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.205, 0.3, 0.06, 0.012)
+        self.createNewEntryInfoLabel_02.setFixedSize(L, H)
+        self.createNewEntryInfoLabel_02.move(X_pos, Y_pos)
+        self.createNewEntryInfoLabel_02.setAlignment(QtCore.Qt.AlignLeft)
+        self.createNewEntryInfoLabel_02.setFont(QFont('Times', Text_size))
+        self.createNewEntryInfoLabel_02.setStyleSheet('color:Black')
+        self.createNewEntryInfoLabel_02.setWordWrap(True)
+        self.createNewEntryInfoLabel_02.setText("Search for an item:")
+
+        self.createNewEntryTextBox = QLineEdit(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.4, 0.205, 0.3, 0.06, 0.012)
+        self.createNewEntryTextBox.setFixedSize(L,H)
+        self.createNewEntryTextBox.move(X_pos,Y_pos)
+        self.createNewEntryTextBox.setFont(QFont('Times', Text_size))
+        self.createNewEntryTextBox.setPlaceholderText('Enter Query')
+        self.createNewEntryTextBox.setStyleSheet('color:Blue')
+
+        self.createNewEntrySearchButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.7, 0.205, 0.1, 0.06, 0.012)
+        self.createNewEntrySearchButton.setFixedSize(L, H)
+        self.createNewEntrySearchButton.move(X_pos, Y_pos)
+        self.createNewEntrySearchButton.setFont(QFont('Times', Text_size))
+        self.createNewEntrySearchButton.setText("Search")
+        self.createNewEntrySearchButton.clicked.connect(self.searchQuery)
+
+        self.createNewEntryClearSearchButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.8, 0.205, 0.1, 0.06, 0.012)
+        self.createNewEntryClearSearchButton.setFixedSize(L, H)
+        self.createNewEntryClearSearchButton.move(X_pos, Y_pos)
+        self.createNewEntryClearSearchButton.setFont(QFont('Times', Text_size))
+        self.createNewEntryClearSearchButton.setText("Clear")
+        self.createNewEntryClearSearchButton.clicked.connect(self.clearQuery)
+
+        self.table = QtWidgets.QTableWidget(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.27, 0.9, 0.4, 0.0185)
+        self.table.setGeometry(QtCore.QRect(X_pos, Y_pos, L, H))
+
+        self.createNewEntryInfoLabel_03 = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.05, 0.7, 0.9, 0.06, 0.012)
+        self.createNewEntryInfoLabel_03.setFixedSize(L, H)
+        self.createNewEntryInfoLabel_03.move(X_pos, Y_pos)
+        self.createNewEntryInfoLabel_03.setAlignment(QtCore.Qt.AlignLeft)
+        self.createNewEntryInfoLabel_03.setFont(QFont('Times', Text_size))
+        self.createNewEntryInfoLabel_03.setStyleSheet('color:Red')
+        self.createNewEntryInfoLabel_03.setWordWrap(True)
+        self.createNewEntryInfoLabel_03.setText("Highlight the required entry from above table and press 'Proceed'.")
+
+        self.createNewEntryProceedButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.1, 0.85, 0.35, 0.1, 0.012)
+        self.createNewEntryProceedButton.setFixedSize(L, H)
+        self.createNewEntryProceedButton.move(X_pos, Y_pos)
+        self.createNewEntryProceedButton.setFont(QFont('Times', Text_size))
+        self.createNewEntryProceedButton.setText("Proceed")
+        self.createNewEntryProceedButton.clicked.connect(self.proceed)
+
+        self.createNewEntryBackButton = QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.55, 0.85, 0.35, 0.1, 0.012)
+        self.createNewEntryBackButton.setFixedSize(L, H)
+        self.createNewEntryBackButton.move(X_pos, Y_pos)
+        self.createNewEntryBackButton.setFont(QFont('Times', Text_size))
+        self.createNewEntryBackButton.setText("Back")
+        self.createNewEntryBackButton.clicked.connect(self.back)
+
+    def translate_pos(self, ratioX, ratioY, ratioLength, ratioHeight, ratioTextSize):
+        requiredX = np.int0(ratioX*self.width)
+        requiredY = np.int0(ratioY*self.height)
+        requiredLength = np.int0(ratioLength*self.width)
+        requiredHeight = np.int0(ratioHeight*self.height)
+        requiredTextSize = np.int0(ratioTextSize*self.width)
+        return requiredX, requiredY, requiredLength, requiredHeight, requiredTextSize
+
+    def searchQuery(self):
+        print('button to search new query pressed. Query: ', self.createNewEntryTextBox.text())
+
+
+    def clearQuery(self):
+        self.createNewEntryTextBox.clear()
+
+    def proceed(self):
+        print('button to proceed is pressed.')
+        self.w = BreakIntoPellets()
+        self.w.show()
+        self.close()
+
+    def back(self):
+        print('button to return is pressed.')
+        self.close()
+
+
+class MyWindow(QMainWindow):
+    def __init__(self):
+        super(MyWindow, self).__init__()
+        self.desktop = QApplication.desktop()
+        self.screenRect = self.desktop.screenGeometry()
+        self.height = int(self.screenRect.height()/2)
+        self.width = int(self.screenRect.width()/2)
+        self.setGeometry(int(self.width/2), int(self.height/2), self.width, self.height)
+        self.setWindowTitle("Oviklo Yarn Stores Inventory Management System")
+        self.initUI()
+        #self.PrimaryFunctions()
+
+    def initUI(self):
+        self.mainWindowLabel = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.1, 0.05, 0.8, 0.075, 0.0185)
+        self.mainWindowLabel.setFixedSize(L, H)
+        self.mainWindowLabel.move(X_pos, Y_pos)
+        self.mainWindowLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.mainWindowLabel.setFont(QFont('Times', Text_size))
+        self.mainWindowLabel.setStyleSheet('color:Black')
+        self.mainWindowLabel.setText("OVIKLO INVENTORY MANAGEMENT SYSTEM")
+
+        self.mainWindowInfoLabel = QLabel(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.01, 0.95, 0.8, 0.075, 0.012)
+        self.mainWindowInfoLabel.setFixedSize(L, H)
+        self.mainWindowInfoLabel.move(X_pos, Y_pos)
+        self.mainWindowInfoLabel.setAlignment(QtCore.Qt.AlignLeft)
+        self.mainWindowInfoLabel.setFont(QFont('Times', Text_size))
+        self.mainWindowInfoLabel.setStyleSheet('color:Red')
+        self.mainWindowInfoLabel.setText("* Note: Please Close the Excel_01 and Excel_02 documents before using the software")
+
+        self.mainWindowBtn_createNewEntry = QtWidgets.QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.1, 0.70, 0.35, 0.1, 0.015)
+        self.mainWindowBtn_createNewEntry.setFixedSize(L, H)
+        self.mainWindowBtn_createNewEntry.move(X_pos, Y_pos)
+        self.mainWindowBtn_createNewEntry.setFont(QFont('Times', Text_size))
+        self.mainWindowBtn_createNewEntry.setText("CREATE A NEW ENTRY")
+        self.mainWindowBtn_createNewEntry.clicked.connect(self.createNewEntry)
+
+        self.mainWindowBtn_scanALabel = QtWidgets.QPushButton(self)
+        X_pos, Y_pos, L, H, Text_size = self.translate_pos(0.5, 0.70, 0.35, 0.1, 0.015)
+        self.mainWindowBtn_scanALabel.setFixedSize(L, H)
+        self.mainWindowBtn_scanALabel.move(X_pos, Y_pos)
+        self.mainWindowBtn_scanALabel.setFont(QFont('Times', Text_size))
+        self.mainWindowBtn_scanALabel.setText("SCAN A LABEL")
+        self.mainWindowBtn_scanALabel.clicked.connect(self.scanALabel)
+
+    def translate_pos(self, ratioX, ratioY, ratioLength, ratioHeight, ratioTextSize):
+        requiredX = np.int0(ratioX*self.width)
+        requiredY = np.int0(ratioY*self.height)
+        requiredLength = np.int0(ratioLength*self.width)
+        requiredHeight = np.int0(ratioHeight*self.height)
+        requiredTextSize = np.int0(ratioTextSize*self.width)
+        return requiredX, requiredY, requiredLength, requiredHeight, requiredTextSize
+    def createNewEntry(self):
+        print('button to create new entry pressed')
+        self.w = CreateANewEntryWindow()
+        self.w.show()
+
+
+    def scanALabel(self):
+        print('button to scan a label pressed')
+        self.w = ScanLabelBarcode()
+        self.w.show()
+
+
+def window():
+    app = QApplication(sys.argv)
+    win = MyWindow()
+    win.show()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    primaryFunctions()
+    window()
